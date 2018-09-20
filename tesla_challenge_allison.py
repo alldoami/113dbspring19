@@ -141,7 +141,7 @@ def main():
         
 if __name__ == "__main__":
     #main()
-    unittest.main()
-    #app.run()
+    #unittest.main()
+    app.run()
 
                 
