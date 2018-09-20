@@ -12,3 +12,5 @@ To use tesla_challenge_allison.py:
 	- For adding nodes: http://127.0.0.1:5000/AddNode/A/
 	- For creating routes: http://127.0.0.1:5000/AddRoute/A/B/3/ (This will print an error if either of the nodes don't exist)
 	- For finding the fastest route: http://127.0.0.1:5000/GetFastestRoute/A/B/ (This will print an error if the path is not possible)
+6. To run unit tests, uncomment unittest.main() on line 147 and comment out app.run()
+	- Unit tests runs the TestDijkstra class and all the functions inside it.

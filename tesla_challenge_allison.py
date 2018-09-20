@@ -6,7 +6,6 @@ from string import ascii_uppercase
 
 app = Flask(__name__)
 
-allNodes = dict()
 allNodes = {}
 
 class TestDijkstra(unittest.TestCase):
@@ -83,19 +82,20 @@ def AddRoute(firstNode, secondNode, length):
 def GetFastestRoute(start, end):
     if(start not in allNodes.keys() or end not in allNodes.keys()):
         return "Not a possible route"
-    distance = dict()
     distance = {}
     distance[start] = 0
-    route = dict()
     route = {}
     q = collections.deque()
 
+    #Giving all nodes (besides the start) a temporary distance of infinity (meaning they haven't been visited yet)
     for key, value in allNodes.items():
         if key != start:
             distance[key] = float("inf")
         q.append(key)
     
+    #Go through queue of nodes and assign shortest path to each node
     while q:
+        #Need to sort distance dict because we want to find the node with the shortest tentative distance and set it as the current node
         list_distance = sorted(distance.items(), key=lambda kv: kv[1])
         for i in range(len(list_distance)):
             if list_distance[i][0] in q:
@@ -103,6 +103,7 @@ def GetFastestRoute(start, end):
                 q.remove(v)
                 break
 
+        #Goes through the nodes connected to the current node and finds the shortest path
         for key, value in allNodes[v].items():
             d = distance[v] + value
             if d < distance[key]:
@@ -112,6 +113,7 @@ def GetFastestRoute(start, end):
                     route[key] = v + '->' + key
                 distance[key] = d
 
+    #Return found shortest route to end point or return not a possible route if nothing was found
     try:
         return '"route":"' + route[end] + '", \n"distance":' + str(distance[end])
     except:
@@ -123,7 +125,6 @@ def main():
     AddNode('C')
     AddNode('D')
     AddNode('E')
-    
     AddRoute('B','D',10) 
     AddRoute('B','C',5) 
     AddRoute('A','B',4) 
@@ -131,17 +132,18 @@ def main():
     AddRoute('C','E',3) 
     AddRoute('E','D',4) 
     AddNode('F') 
-    AddRoute('D','F',11) 
-    #AddRoute('A','C', 3)
-    #AddRoute('A', 'B', 1)
-    #AddRoute('B','C', 1)
-    #AddRoute('C', 'D', 1)
+    AddRoute('D','F',11)
     d = GetFastestRoute('A','F')
     print(d)
         
 if __name__ == "__main__":
+    #Runs main()
     #main()
+
+    #Runs Unit tests
     #unittest.main()
-    app.run()
+
+    #Runs Http server at http://127.0.0.1:5000
+    app.run() 
 
                 
