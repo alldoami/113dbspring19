@@ -1,8 +1,8 @@
 # 113dbspring19
 
 Before pushing:
-\ngit pull origin master
-\ngit status
-\ngit add (file name no parantheses)
-\ngit commit -m "message with quotes"
-\ngit push origin master
+<br>git pull origin master
+<br>git status
+<br>git add (file name no parantheses)
+<br>git commit -m "message with quotes"
+<br>git push origin master
