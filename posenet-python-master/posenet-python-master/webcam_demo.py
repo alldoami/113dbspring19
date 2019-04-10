@@ -2,7 +2,8 @@ import tensorflow as tf
 import cv2
 import time
 import argparse
-
+import os
+import logging
 import posenet
 
 parser = argparse.ArgumentParser()
@@ -13,23 +14,27 @@ parser.add_argument('--cam_height', type=int, default=720)
 parser.add_argument('--scale_factor', type=float, default=0.7125)
 args = parser.parse_args()
 
-
 def main():
-
     with tf.Session() as sess:
         model_cfg, model_outputs = posenet.load_model(args.model, sess)
         output_stride = model_cfg['output_stride']
-
-        cap = cv2.VideoCapture(args.cam_id)
-        cap.set(3, args.cam_width)
-        cap.set(4, args.cam_height)
+        #cap = cv2.VideoCapture(args.cam_id)
+        cap = cv2.VideoCapture("IMG_5593.avi")
+        #cap.set(3, args.cam_width)
+        #cap.set(4, args.cam_height)
+        cap.set(3, 1080)
+        cap.set(4, 1920)
 
         start = time.time()
         frame_count = 0
+        min = 10000
+        prev = 10000
+        state = 0
         while True:
             input_image, display_image, output_scale = posenet.read_cap(
-                cap, scale_factor=args.scale_factor, output_stride=output_stride)
-
+                cap, scale_factor=0.2, output_stride=output_stride)
+            #output_stride
+            #args.scale_factor
             heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = sess.run(
                 model_outputs,
                 feed_dict={'image:0': input_image}
@@ -50,6 +55,27 @@ def main():
             overlay_image = posenet.draw_skel_and_kp(
                 display_image, pose_scores, keypoint_scores, keypoint_coords,
                 min_pose_score=0.15, min_part_score=0.1)
+
+            overlay_image = cv2.resize(overlay_image, (600, 900))
+
+            for pi in range(len(pose_scores)):
+                if pose_scores[pi] == 0.:
+                    break
+                #logging.warning('Pose #%d, score = %f' % (pi, pose_scores[pi]))
+                for ki, (s, c) in enumerate(zip(keypoint_scores[pi, :], keypoint_coords[pi, :, :])):
+                	if posenet.PART_NAMES[ki] == "leftEye":
+                	    logging.warning('Keypoint %s, score = %f, coord = %s' % (posenet.PART_NAMES[ki], s, c))
+                	    if c[0] > prev and state == 0:
+                	    	prev = c[0]
+                	    elif c[0] < prev and state == 0:
+                	    	state = 1
+                	    elif c[0] < min and state == 1:
+                	    	min = c[0]
+                	    elif c[0] > min and state == 1:
+                	    	logging.warning('FOUND MAX')
+                	    	prev = c[0]
+                	    	min = 10000
+                	    	state = 0
 
             cv2.imshow('posenet', overlay_image)
             frame_count += 1
