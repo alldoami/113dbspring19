@@ -5,6 +5,7 @@ import argparse
 import os
 import logging
 import posenet
+from collections import deque
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=int, default=101)
@@ -13,6 +14,12 @@ parser.add_argument('--cam_width', type=int, default=1280)
 parser.add_argument('--cam_height', type=int, default=720)
 parser.add_argument('--scale_factor', type=float, default=0.7125)
 args = parser.parse_args()
+
+def findMin(q):
+	if q[3] < q[0] and q[3] < q[1] and q[3] < q[2] and q[3] < q[4] and q[3] < q[5] and q[3] < q[6]:
+		return q[3]
+	else:
+		return 0
 
 def main():
     with tf.Session() as sess:
@@ -27,9 +34,11 @@ def main():
 
         start = time.time()
         frame_count = 0
-        min = 10000
-        prev = 10000
-        state = 0
+        #coordinate queue
+        runningQ = deque()
+
+        #create other queues to get more info
+        moreInfoQ = deque()
         while True:
             input_image, display_image, output_scale = posenet.read_cap(
                 cap, scale_factor=0.2, output_stride=output_stride)
@@ -65,17 +74,17 @@ def main():
                 for ki, (s, c) in enumerate(zip(keypoint_scores[pi, :], keypoint_coords[pi, :, :])):
                 	if posenet.PART_NAMES[ki] == "leftEye":
                 	    logging.warning('Keypoint %s, score = %f, coord = %s' % (posenet.PART_NAMES[ki], s, c))
-                	    if c[0] > prev and state == 0:
-                	    	prev = c[0]
-                	    elif c[0] < prev and state == 0:
-                	    	state = 1
-                	    elif c[0] < min and state == 1:
-                	    	min = c[0]
-                	    elif c[0] > min and state == 1:
-                	    	logging.warning('FOUND MAX')
-                	    	prev = c[0]
-                	    	min = 10000
-                	    	state = 0
+                	   	#adding coordinate to running queue
+                	    runningQ.append(c[0])
+                	    #append more infomation to other queues here
+
+                	    #if length equals 7, then will see if mid point is the min
+                	    if len(runningQ) == 7:
+                	    	if findMin(runningQ) != 0:
+                	    		logging.warning('FOUND MIN')
+                	    		logging.warning(findMin(runningQ))
+                	    	runningQ.popleft()
+                	    	#popleft to all other queues you create for more info here
 
             cv2.imshow('posenet', overlay_image)
             frame_count += 1
