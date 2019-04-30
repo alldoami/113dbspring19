@@ -6,6 +6,7 @@ import os
 import logging
 import posenet
 from collections import deque
+import upload_file_gui as upload_file_gui
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=int, default=101)
@@ -26,7 +27,9 @@ def main():
         model_cfg, model_outputs = posenet.load_model(args.model, sess)
         output_stride = model_cfg['output_stride']
         #cap = cv2.VideoCapture(args.cam_id)
-        cap = cv2.VideoCapture("IMG_5593.avi")
+        fileUploaded = upload_file_gui.uploadFileGUI()
+        logging.warning(fileUploaded)
+        cap = cv2.VideoCapture(fileUploaded)
         #cap.set(3, args.cam_width)
         #cap.set(4, args.cam_height)
         cap.set(3, 1080)
@@ -41,7 +44,7 @@ def main():
         moreInfoQ = deque()
         while True:
             input_image, display_image, output_scale = posenet.read_cap(
-                cap, scale_factor=0.2, output_stride=output_stride)
+                cap, scale_factor=0.3, output_stride=output_stride)
             #output_stride
             #args.scale_factor
             heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = sess.run(
