@@ -22,6 +22,12 @@ def findMin(q):
 	else:
 		return 0
 
+def findMax(q):
+	if q[3] > q[0] and q[3] > q[1] and q[3] > q[2] and q[3] > q[4] and q[3] > q[5] and q[3] > q[6]:
+		return q[3]
+	else:
+		return 0
+
 def main():
     with tf.Session() as sess:
         model_cfg, model_outputs = posenet.load_model(args.model, sess)
@@ -44,7 +50,7 @@ def main():
         moreInfoQ = deque()
         while True:
             input_image, display_image, output_scale = posenet.read_cap(
-                cap, scale_factor=0.3, output_stride=output_stride)
+                cap, scale_factor=0.4, output_stride=output_stride)
             #output_stride
             #args.scale_factor
             heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = sess.run(
@@ -75,7 +81,7 @@ def main():
                     break
                 #logging.warning('Pose #%d, score = %f' % (pi, pose_scores[pi]))
                 for ki, (s, c) in enumerate(zip(keypoint_scores[pi, :], keypoint_coords[pi, :, :])):
-                	if posenet.PART_NAMES[ki] == "leftEye":
+                	if posenet.PART_NAMES[ki] == "nose":
                 	    logging.warning('Keypoint %s, score = %f, coord = %s' % (posenet.PART_NAMES[ki], s, c))
                 	   	#adding coordinate to running queue
                 	    runningQ.append(c[0])
@@ -86,6 +92,9 @@ def main():
                 	    	if findMin(runningQ) != 0:
                 	    		logging.warning('FOUND MIN')
                 	    		logging.warning(findMin(runningQ))
+                	    	if findMax(runningQ) != 0:
+                	    		logging.warning('FOUND MAX')
+                	    		logging.warning(findMax(runningQ))
                 	    	runningQ.popleft()
                 	    	#popleft to all other queues you create for more info here
 
