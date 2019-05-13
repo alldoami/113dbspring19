@@ -42,15 +42,16 @@ def compareTolerance(list_current, average_prev, tolerance):
     
 def main():
     path_input = './exercises'
-    path_output = './output'
+    path_output = './output' #pictures of minimum
     print_min = True
     model_number = 101
     scale_factor = 0.2
-    delay = 3
-    exercise = "pullup"
+    delay = 3 #queue delay
+    exercise = "squat_side"
     video_format = ".avi"
-    body_points = {'rightShoulder':None,'rightWrist':None,'rightElbow':None,'leftShoulder':None,'leftWrist':None,'leftElbow':None}
-    body_points_score = {'rightShoulder':None,'rightWrist':None,'rightElbow':None,'leftShoulder':None,'leftWrist':None,'leftElbow':None}
+    body_points = {'rightShoulder':None,'rightWrist':None,'rightElbow':None,'leftShoulder':None,'leftWrist':None,'leftElbow':None,'rightHip':None,'leftHip':None,'rightKnee':None,'leftKnee':None}
+    body_points_score = {'rightShoulder':None,'rightWrist':None,'rightElbow':None,'leftShoulder':None,'leftWrist':None,'leftElbow':None,'rightHip':None,'leftHip':None,'rightKnee':None,'leftKnee':None}
+    
     with tf.Session() as sess:
         model_cfg, model_outputs = posenet.load_model(model_number, sess)
         output_stride = model_cfg['output_stride']
@@ -79,6 +80,8 @@ def main():
         init_position = 0
         c_r = deque()
         c_l = deque()
+        # hips past knees
+        hips = []
         # maximum angles
         st = []
         # minimum angles
@@ -211,6 +214,13 @@ def main():
                 avg_l /= avg_count
                 if (avg_r > threshold and avg_l > threshold) or (oldQ['Scores Right'] > threshold and oldQ['Scores Left'] > threshold):
                     #Calculate angle between shoulder and wrist using the elbow as the origin
+                    if(oldQ['Body Points']['leftHip'][0] < oldQ['Body Points']['leftKnee'][0]*1.3 and oldQ['Body Points']['leftHip'][0] > oldQ['Body Points']['leftKnee'][0]*0.7):
+                        hips.append(1)
+                        print('ADDED')
+                    else:
+                        hips.append(0)
+                        print('NOT ADDED')
+
                     angle_right = angle((oldQ['Body Points']['rightShoulder']-oldQ['Body Points']['rightElbow']),(oldQ['Body Points']['rightWrist']-oldQ['Body Points']['rightElbow']))
                     angle_left = angle((oldQ['Body Points']['leftShoulder']-oldQ['Body Points']['leftElbow']),(oldQ['Body Points']['leftWrist']-oldQ['Body Points']['leftElbow']))
                     if maxima_text == 'Maximum':
@@ -224,7 +234,7 @@ def main():
                     print('Angle Right: %f degrees with confidence %f and average confidence %f' %(angle_right,oldQ['Scores Right'],avg_r))
                     print('Angle Left: %f degrees with confidence %f and average confidence %f' %(angle_left,oldQ['Scores Left'],avg_l))
                     print()
-                    cv2.imwrite(r'C:\Users\micha\Desktop\ML\113dbspring19\posenet-python-master\posenet-python-master\output\ ' + maxima_text + ' ' + exercise + ' ' +  str(picture_count) + '.jpg',oldQ['Image'])
+                    cv2.imwrite(r'C:\Users\Allison\Desktop\113dbspring19-master\posenet-python-master\posenet-python-master\output' + maxima_text + ' ' + exercise + ' ' +  str(picture_count) + '.jpg',oldQ['Image'])
                     
                     picture_count += 1
             cv2.imshow('posenet', overlay_image)
@@ -234,9 +244,15 @@ def main():
                 
         st = np.asarray(st)
         sb = np.asarray(sb)
+        hips = np.asarray(hips)
+
+        print('Average number of times hips passed knees: %f' %(np.mean(hips)))
         print('The maximum angle average is %f and the standarad deviation is %f'% (np.mean(st),np.std(st)))
         print('The minimum angle average is %f and the standarad deviation is %f'% (np.mean(sb),np.std(sb)))
         print(max_count)
         cap.release()
         cv2.destroyAllWindows();
         print('Average FPS: ', frame_count / (time.time() - start))
+
+if __name__ == "__main__":
+    main()
