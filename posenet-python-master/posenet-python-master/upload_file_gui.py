@@ -14,19 +14,38 @@ from tkinter import ttk
 
 root = Tk()
 returnOpenFile = ""
+exercise = 0
+
 
 def openFile():
-    root.filename =  filedialog.askopenfilename(initialdir = "C:/Users/Allison/Downloads/",title = "Select file",filetypes = (("avi files","*.avi"),("all files","*.*")))
-    returnOpenFile = root.filename
-    print(returnOpenFile)
-    return returnOpenFile
+  root.filename =  filedialog.askopenfilename(initialdir = "C:/Users/Allison/Downloads/",title = "Select file",filetypes = (("avi files","*.avi"),("all files","*.*")))
+  returnOpenFile = root.filename
+  print(returnOpenFile)
+  return returnOpenFile
+def setPullUp():
+  exercise = 1
+def setPushUp():
+  exercise = 2
+def setSquat():
+  exercise = 3
+
 def uploadFileGUI():
   root.title("WeightLiftHelper")
   label = ttk.Label(root, text = "In order to check your form, please upload a video of type *.api").pack()
   Title = root.title( "File Opener")
   btn = ttk.Button(root, text= "Upload File")
+  btn_pull_up = ttk.Button(root, text = "Pull Up")
+  btn_push_up = ttk.Button(root, text = "Push Up")
+  btn_squat = ttk.Button(root, text = "Squat")
   btn.pack()
-  getFile = openFile()
-  btn.config(command=getFile)
-  return getFile
+  btn_pull_up.pack()
+  btn_push_up.pack()
+  btn_squat.pack()
+  #getFile = openFile()
+  btn.config(command=openFile())
+  btn_pull_up.config(command=setPullUp)
+  btn_push_up.config(command=setPushUp)
+  btn_squat.config(command=setSquat)
+  if exercise != 0:
+    return returnOpenFile, exercise
   
